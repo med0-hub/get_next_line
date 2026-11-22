@@ -6,8 +6,10 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	size_t	i;
 	size_t	j;
 
-	if (!s1 || !s2)
+	if (!s2)
 		return (NULL);
+	if (!s1)
+		s1 = "";
 	str = malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2)) + 1);
 	if (!str)
 		return (NULL);
@@ -49,13 +51,32 @@ char	*get_line(const char *s)
 	if (!str)
 		return (NULL);
 	i = 0;
-	while (s[i] || s[i] == '\n')
+	while (s[i] && s[i] != '\n')
+	{
+		str[i] = s[i];
+		i++;
+	}
+	if (s[i] == '\n')
 	{
 		str[i] = s[i];
 		i++;
 	}
 	str[i] = '\0';
 	return (str);
+}
+
+char	*get_rest(char *box)
+{
+	char	*str;
+	int		i;
+	int		rest_len;
+
+	i = 0;
+	rest_len = 0;
+	while (box[i] != '\n')
+		i++;
+	
+	
 }
 
 char	*get_next_line(int fd)
@@ -66,17 +87,24 @@ char	*get_next_line(int fd)
 	int			found;
 	static char *box;
 	char		*line;
+	char		*tmp;
 
 	found = 0;
-	box = '\0';
 	while (found == 0)
 	{
 		bytes_read = read(fd, buff, BUFFER_SIZE);
 		if (bytes_read <= 0)
 			break;
 		i = 0;
-		buff[BUFFER_SIZE + 1] = '\0';
-		box = ft_strjoin(box, buff);
+		buff[bytes_read] = '\0';
+		tmp = ft_strjoin(box, buff);
+		if (!tmp)
+		{
+			free(tmp);
+			return (NULL);
+		}
+		free(box);
+		box = tmp;
 		i = 0;
 		while (i < bytes_read)
 		{
