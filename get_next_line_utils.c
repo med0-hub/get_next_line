@@ -6,7 +6,7 @@
 /*   By: mbelarab <mbelarab@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/22 14:57:16 by mbelarab          #+#    #+#             */
-/*   Updated: 2026/11/23 11:24:16 by mbelarab         ###   ########.fr       */
+/*   Updated: 2026/11/24 17:58:00 by mbelarab         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,39 +22,42 @@ size_t	ft_strlen(const char *s)
 	return (len);
 }
 
+void	ft_copy_n(char *dst, const char *src, size_t len)
+{
+	size_t	i;
+
+	i = 0;
+	while (i < len)
+	{
+		dst[i] = src[i];
+		i++;
+	}
+	dst[i] = '\0';
+}
+
 char	*ft_strjoin(char const *s1, char const *s2)
 {
 	char	*str;
-	size_t	i;
-	size_t	j;
+	size_t	len1;
+	size_t	len2;
 
 	if (!s2)
 		return (NULL);
 	if (!s1)
 		s1 = "";
-	str = malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2)) + 1);
+	len1 = ft_strlen(s1);
+	len2 = ft_strlen(s2);
+	str = malloc(len1 + len2 + 1);
 	if (!str)
 		return (NULL);
-	i = 0;
-	while (s1[i])
-	{
-		str[i] = s1[i];
-		i++;
-	}
-	j = 0;
-	while (s2[j])
-	{
-		str[i] = s2[j];
-		i++;
-		j++;
-	}
-	str[i] = '\0';
+	ft_copy_n(str, s1, len1);
+	ft_copy_n(str + len1, s2, len2);
 	return (str);
 }
 
 int	is_new_line(char *str)
 {
-	int	i;
+	size_t	i;
 
 	if (!str)
 		return (0);

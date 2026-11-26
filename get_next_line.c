@@ -1,139 +1,115 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mbelarab <mbelarab@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/11/24 17:58:00 by mbelarab          #+#    #+#             */
+/*   Updated: 2026/11/26 10:44:08 by mbelarab         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "get_next_line.h"
 
-char	*get_line(const char *s, int *error)
+static char	*clear_box(char **box, char *other)
+{
+	free(*box);
+	*box = NULL;
+	free(other);
+	return (NULL);
+}
+
+static char	*get_line(const char *s)
 {
 	char	*str;
 	size_t	i;
 
-	if (!s || s[0] == '\0')
+	if (!s || !s[0])
 		return (NULL);
-	str = malloc(sizeof(char) * ft_strlen(s) + 1);
-	if (!str)
-	{
-		*error = 1;
-		return (NULL);
-	}
 	i = 0;
 	while (s[i] && s[i] != '\n')
-	{
-		str[i] = s[i];
 		i++;
-	}
 	if (s[i] == '\n')
-	{
-		str[i] = s[i];
 		i++;
-	}
-	str[i] = '\0';
+	str = malloc(i + 1);
+	if (!str)
+		return (NULL);
+	ft_copy_n(str, s, i);
 	return (str);
 }
 
-char	*get_rest(char *box, int *error)
+static char	*get_rest(char *box, int *error)
 {
 	char	*str;
-	int		i;
-	int		j;
-	int		rest_len;
+	size_t	i;
+	size_t	rest_len;
 
-	if (!box || box[0] == '\0')
+	if (!box)
 		return (NULL);
 	i = 0;
-	rest_len = 0;
 	while (box[i] && box[i] != '\n')
 		i++;
-	if (box[i] == '\0')
+	if (box[i] == '\0' || box[i + 1] == '\0')
 		return (NULL);
-	rest_len = ft_strlen(box) - (i + 1);
-	if (rest_len == 0)
-		return (NULL);
-	str = malloc(sizeof(char) * rest_len + 1);
+	i++;
+	rest_len = ft_strlen(box + i);
+	str = malloc(rest_len + 1);
 	if (!str)
 	{
 		*error = 1;
 		return (NULL);
 	}
-	j = 0;
-	i++;
-	while (box[i])
-	{
-		str[j] = box[i];
-		i++;
-		j++;
-	}
-	str[j] = '\0';
+	ft_copy_n(str, box + i, rest_len);
 	return (str);
+}
+
+static char	*read_file(int fd, char *box, size_t capacity)
+{
+	char	*buff;
+	char	*tmp;
+	ssize_t	bytes_read;
+
+	buff = malloc(capacity + 1);
+	if (!buff)
+		return (clear_box(&box, NULL));
+	while (1)
+	{
+		bytes_read = read(fd, buff, capacity);
+		if (bytes_read < 0)
+			return (clear_box(&box, buff));
+		if (bytes_read == 0)
+			break ;
+		buff[bytes_read] = '\0';
+		tmp = ft_strjoin(box, buff);
+		free(box);
+		box = tmp;
+		if (!box || is_new_line(buff))
+			break ;
+	}
+	free(buff);
+	return (box);
 }
 
 char	*get_next_line(int fd)
 {
-	char		buff[BUFFER_SIZE + 1];
-	ssize_t		bytes_read;
-	int			i;
-	int			found;
-	int			error;
-	static char *box;
+	static char	*box;
 	char		*line;
 	char		*tmp;
+	int			error;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (NULL);
-	if (is_new_line(box) == 0)
-	{
-		found = 0;
-		while (found == 0)
-		{
-			bytes_read = read(fd, buff, BUFFER_SIZE);
-			if (bytes_read == -1)
-			{
-				free(box);
-				box = NULL;
-				return (NULL);
-			}
-			else if (bytes_read <= 0)
-				break;
-			i = 0;
-			buff[bytes_read] = '\0';
-			tmp = ft_strjoin(box, buff);
-			if (!tmp)
-			{
-				free(tmp);
-				free(box);
-				box = NULL;
-				return (NULL);
-			}
-			free(box);
-			box = tmp;
-			i = 0;
-			while (i < bytes_read)
-			{
-				if (buff[i] == '\n')
-				{
-					found = 1;
-					break;
-				}
-				i++;
-			}
-		}
-	}
+	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, NULL, 0) < 0)
+		return (clear_box(&box, NULL));
+	if (!is_new_line(box))
+		box = read_file(fd, box, BUFFER_SIZE);
+	line = get_line(box);
+	if (!line)
+		return (clear_box(&box, NULL));
 	error = 0;
-	line = get_line(box, &error);
-	if (error == 1)
-	{
-		free(line);
-		free(box);
-		box = NULL;
-		return (NULL);
-	}
 	tmp = get_rest(box, &error);
-	if (error == 1)
-	{
-		free(line);
-		free(box);
-		box = NULL;
-		return (NULL);
-	}
+	if (error)
+		return (clear_box(&box, line));
 	free(box);
 	box = tmp;
 	return (line);
 }
-
