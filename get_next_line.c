@@ -6,7 +6,7 @@
 /*   By: mbelarab <mbelarab@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/24 17:58:00 by mbelarab          #+#    #+#             */
-/*   Updated: 2026/11/26 10:44:08 by mbelarab         ###   ########.fr       */
+/*   Updated: 2026/11/27 10:45:32 by mbelarab         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ char	*get_next_line(int fd)
 	char		*tmp;
 	int			error;
 
-	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, NULL, 0) < 0)
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (clear_box(&box, NULL));
 	if (!is_new_line(box))
 		box = read_file(fd, box, BUFFER_SIZE);
